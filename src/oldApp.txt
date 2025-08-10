@@ -1,0 +1,17 @@
+      <header className="flex justify-between items-center px-dyp bg-gray-800">
+        {/* user Info */}
+        <div className="flex flex-col items-center">
+          <RxAvatar size={40} color="beige" className="hidden md:block" />
+          <p className="text-white font-bold self-center flex-wrap">
+            {currentUser}
+          </p>
+        </div>
+        {/*  END user Info */}
+
+        {/* Dashboard name */}
+        <h1 className="text-2xl lg:text-4xl max-sm:basis-[160px] text-white font-bold py-5">
+          لوحة التحكم
+        </h1>
+        {/* END Dashboard name*/}
+
+      </header>

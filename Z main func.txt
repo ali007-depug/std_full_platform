@@ -1,0 +1,57 @@
+import { db } from "../firebase";
+import {
+  collection,
+  doc,
+  setDoc,
+  getDoc
+} from "firebase/firestore";
+
+/**
+ * Add new student and initialize semester courses
+ * @param {string} batchId - The ID of the batch (e.g. "28")
+ * @param {string} name - Student name
+ * @param {string} stdId - Student ID
+ */
+export async function addNewStudentToBatch({ batchId, name, stdId }) {
+  try {
+    // Step 1: Get batch document
+    const batchRef = doc(db, "batches", batchId);
+    const batchSnap = await getDoc(batchRef);
+
+    if (!batchSnap.exists()) {
+      throw new Error("Batch does not exist");
+    }
+
+    const batchData = batchSnap.data();
+    const currentSem = batchData.currentSem;
+    const courses = batchData.courses || [];
+
+    // Step 2: Add student to students subcollection
+    const studentRef = doc(collection(db, `batches/${batchId}/students`));
+    await setDoc(studentRef, {
+      name,
+      stdId,
+      currentSem,
+    });
+
+    // Step 3: Add courses under the student's current semester
+    const semesterCoursesRef = collection(
+      db,
+      `batches/${batchId}/students/${studentRef.id}/semesters/${currentSem}/courses`
+    );
+
+    // Insert each course as a doc
+    for (const course of courses) {
+      const courseRef = doc(semesterCoursesRef, course.name.toLowerCase());
+      await setDoc(courseRef, {
+        name: course.name,
+        grade: null, // or set default grade
+      });
+    }
+
+    console.log("✅ Student and courses added successfully");
+  } catch (error) {
+    console.error("❌ Error adding student:", error.message);
+  }
+}
+

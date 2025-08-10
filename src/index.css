@@ -1,0 +1,13 @@
+@import "tailwindcss";
+
+@theme {
+  --breakpoint-xs: 26rem;
+
+  --text-fluid :  clamp(1.875rem, 1.878vw + 1.435rem, 3.125rem);
+  --text-dyTitle : clamp(3rem, 2.066vw + 2.516rem, 4.375rem);
+  --spacing-dyp : clamp(0.813rem, -0.491rem + 5.561vi, 4.375rem);
+
+
+}
+
+
