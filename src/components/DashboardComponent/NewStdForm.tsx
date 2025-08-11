@@ -15,7 +15,7 @@ import type { ShowUI } from "../../pages/Dashboard";
 
 export type oldStudentProp = {
   name: string;
-  std_Id: string;
+  stdId: string;
   stdBatch: string | null;
 };
 type NewStdFormProps = {
@@ -89,7 +89,7 @@ export default function NewStdForm({
     ? {
         stdName: oldStudent.name,
         stdBatch: oldStudent.stdBatch,
-        std_id: oldStudent.std_Id,
+        std_id: oldStudent.stdId,
         stdGrade: "",
         stdCourse: "",
       }
@@ -107,7 +107,7 @@ export default function NewStdForm({
     if (oldStudent) {
       dispatch({ type: "stdName", newValue: oldStudent.name });
       dispatch({ type: "stdBatch", newValue: selectedBatchId });
-      dispatch({ type: "std_id", newValue: oldStudent.std_Id });
+      dispatch({ type: "std_id", newValue: oldStudent.stdId });
     }
   }, [selectedBatchId, oldStudent]);
 
