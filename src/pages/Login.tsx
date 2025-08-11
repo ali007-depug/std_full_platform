@@ -22,7 +22,7 @@ export default function Login() {
     userPassword: "",
   });
   const [showPassword, setShowPassword] = useState<boolean>(false);
-  const [validateEmail, setValidateEmail] = useState<boolean>(null); //to show the error msg below the input if it was not valid
+  const [validateEmail, setValidateEmail] = useState<boolean>(false); //to show the error msg below the input if it was not valid
   const [loading, setIsLoading] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string>(""); // the message the in the popup
   const [showPopup, setShowPopup] = useState<boolean>(false); // the popup
@@ -48,7 +48,7 @@ export default function Login() {
   };
 
   // func to handle the login
-  const handelLogin = async (e) => {
+  const handelLogin = async (e:React.FormEvent<HTMLFormElement>) => {
     e.preventDefault(); // prevent the default action
     // check if the email is valid
     const isEmailVailditon = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
@@ -80,7 +80,6 @@ export default function Login() {
           const approveSnap = await getDoc(approvedRef);
           if (approveSnap.exists()) {
             // if it succeful redirect to the dashboard
-            console.log("login succefully" + "" + userCredential.user.name);
             navigate("/dashboard");
           } else {
             await signOut(auth);
@@ -89,17 +88,16 @@ export default function Login() {
           }
         } catch (error) {
           // handel Login error
-          console.log(error.code);
-          if (error.code === "auth/user-not-found") {
+          if ((error as { code: string }).code === "auth/user-not-found") {
             setShowPopup(true);
             setErrorMsg("عذراً هذا المتسخدم غير موجود");
-          } else if (error.code === "auth/wrong-password") {
+          } else if ((error as {code:string}).code === "auth/wrong-password") {
             setShowPopup(true);
             setErrorMsg("كلمة  السر التي أدخلتها غير صحيحة");
-          } else if (error.code === "auth/invalid-credential") {
+          } else if ((error as {code:string}).code === "auth/invalid-credential") {
             setShowPopup(true);
             setErrorMsg("البريد الإلكتروني غير صحيح أو كلمة المرور غير صحيحة");
-          } else if (error.code === "auth/network-request-failed") {
+          } else if ((error as {code:string}).code === "auth/network-request-failed") {
             setShowPopup(true);
             setErrorMsg("فشل الإتصال بالشبكة، حاول مجدداً");
           }

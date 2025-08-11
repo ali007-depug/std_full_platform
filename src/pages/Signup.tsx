@@ -1,5 +1,5 @@
 // hooks
-import { useState } from "react";
+import React, { useState } from "react";
 // components
 import Input from "../components/Input";
 import PopupError from "../components/PopupError";
@@ -15,8 +15,8 @@ import { getFirestore, doc, setDoc } from "firebase/firestore";
 import { app } from "../firebase";
 
 type validateForm = {
-  emailValid: boolean | null;
-  passwordValid: boolean | null;
+  emailValid: boolean ;
+  passwordValid: boolean;
 };
 interface adminInfo {
   fName: string;
@@ -36,8 +36,8 @@ export default function Signup() {
   });
 
   const [validateForm, setValidateForm] = useState<validateForm>({
-    emailValid: null,
-    passwordValid: null,
+    emailValid: false,
+    passwordValid: false,
   });
 
   const [loading, setLoading] = useState<boolean>(false);
@@ -76,7 +76,7 @@ export default function Signup() {
   };
 
   // func for handle singup
-  const handelSignup = async (e) => {
+  const handelSignup = async (e:React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     // check if email + password are valid
     const isEmailVailditon = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(adminInfo.email);
@@ -115,14 +115,14 @@ export default function Signup() {
             navigate("/login");
           }, 3000);
         } catch (error) {
-          console.log(`signup error : ${error.message}`);
-          if (error.code === "auth/email-already-in-use") {
+          console.log(`signup error : ${error}`);
+          if ((error as {code:string}).code === "auth/email-already-in-use") {
             setShowPopupError(true);
             setErrorMsg("هذا البريد تم التسجيل به من قبل");
-          } else if (error.code === "auth/invalid-email") {
+          } else if ((error as {code:string}).code === "auth/invalid-email") {
             setShowPopupError(true);
             setErrorMsg("هذا البريد غير صالح");
-          } else if (error.code === "auth/network-request-failed") {
+          } else if ((error as {code:string}).code === "auth/network-request-failed") {
             setShowPopupError(true);
             setErrorMsg("فشل الإتصال بالشبكة");
           }

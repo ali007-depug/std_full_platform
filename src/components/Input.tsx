@@ -27,7 +27,7 @@ function handelLabelClick() {
           <input
             type={type}
             ref={inputRef}
-            value={value}
+            value={value ?? ""}
             onChange={(e) => onChange(e.target.value)}
             name={id}
             id={id}

@@ -21,7 +21,7 @@ import {
   setDoc,
 } from "firebase/firestore";
 import { db } from "../firebase";
-import { getAuth, User } from "firebase/auth";
+import { getAuth } from "firebase/auth";
 
 // react router
 // import { useNavigate } from "react-router-dom";
@@ -122,12 +122,9 @@ export default function Dashboard() {
 
   // if students change then fetch thier data to update the UI
   useEffect(() => {
-    // fetchStudents();
     fetchUsers();
-    // if pending users change then reflect in the UI
     getPendingUsers();
-    // fetchBatches();
-  }, [fetchUsers]);
+  }, []);
 
   // ============================= FUNCTIONS ========================================
 
@@ -167,7 +164,7 @@ export default function Dashboard() {
       });
       setStudents(sortStudents);
     } catch (err) {
-      console.error("Error fetching students:", err.message);
+      console.error("Error fetching students:", err);
     } finally {
       setStudentLoading(false);
     }
@@ -338,6 +335,7 @@ export default function Dashboard() {
       const querySnapshot = await getDocs(usersCollection);
       const usersInfo = querySnapshot.docs.map((doc) => ({
         id: doc.id,
+        name: doc.data().name || "Unknown", // Ensure 'name' is always present
         ...doc.data(),
       }));
       setAllUsers(usersInfo);
@@ -352,6 +350,7 @@ export default function Dashboard() {
       const snapshot = await getDocs(collection(db, "pending-users"));
       const pUsers = snapshot.docs.map((doc) => ({
         id: doc.id,
+        name: doc.data().name || "Unknown", // Ensure 'name' is always present
         ...doc.data(),
       }));
       setPendingUsers(pUsers);
@@ -730,12 +729,6 @@ export default function Dashboard() {
               closeBatchInfo={() =>
                 setShowUI({ ...showUI, default: true, showBatchInfo: false })
               }
-              // editedBatchId={editedBatchId}
-              // newSem={newSem}
-              // setNewSem={setNewSem}
-              // newCourses={newCourses}
-              // setNewCourses={setNewCourses}
-              // setEditedBatchId={setEditedBatchId}
               batchLoading={batchLoading}
               handleSelectedBatchId={handleSelectedBatchId}
               setShowToast={(toast) => setShowUI({ ...showUI, toast: toast })}

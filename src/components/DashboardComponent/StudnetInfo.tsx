@@ -18,7 +18,7 @@ export type Student = {
   id: string;
   name: string;
   stdId: string;
-  std_Id?:string;
+  std_Id:string;
   stdBatch: string;
   stdCourses?: Course[];
   currentSem: string;

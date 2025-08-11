@@ -66,18 +66,13 @@ export default function StudentsUI() {
 
     const courses = courseSnap.docs.map(doc => ({
       id: doc.id,
-      ...doc.data(),
+      name: doc.data().name || "",
+      degree: doc.data().degree || 0,
+      grade: doc.data().grade || "",
     }));
 
     setResult({name:studentData.name,stdId:studentData.stdId,currentSem:studentData.currentSem,courses})
   }
-        // if there is no match
-        // if (querySnapshot.empty) {
-        //   setErrorMsg("لم يتم العثور على الطالب");
-        // } else {
-        //   // return the first match
-        //   setResult(querySnapshot.docs[0].data());
-        // }
       } catch {
         setErrorMsg("حدث خطأ أثناء البحث");
       } finally {
@@ -111,7 +106,7 @@ export default function StudentsUI() {
 }
 
 const Info = () => {
-  const [copiedId, setCopiedId] = useState(null);
+  const [copiedId, setCopiedId] = useState("");
 
   const students = [
     { id: '018/M/40319',name:"عنادل علي عبد الباقي", batch: 28 },
@@ -119,10 +114,10 @@ const Info = () => {
     { id: '019/M/41319',name:"غسان علي عبد الباقي", batch: 29 }
   ];
 
-  const copyToClipboard = (text) => {
+  const copyToClipboard = (text:string) => {
     navigator.clipboard.writeText(text);
     setCopiedId(text);
-    setTimeout(() => setCopiedId(null), 2000);
+    setTimeout(() => setCopiedId(""), 2000);
   };
 
   return (
