@@ -21,7 +21,7 @@ interface NewBatchInputProp {
 interface Courses {
   name: string;
   grade: null;
-  rating: null;
+  degree: null;
 }
 // current semester
 const semsters = [

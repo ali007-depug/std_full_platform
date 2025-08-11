@@ -3,7 +3,7 @@ import { useRef } from "react"
 interface inputProps{
   type:string,
   id?:string,
-  value:string,
+  value:string | null,
   onChange:(value:string)=>void,
   error?:boolean,
   errorMsg?:string,

@@ -10,9 +10,41 @@ import { BiPlus } from "react-icons/bi";
 // firebase
 import { setDoc, getDoc, doc, collection } from "firebase/firestore";
 import { db } from "../../firebase";
+import type { Course } from "./StudnetInfo";
+import type { ShowUI } from "../../pages/Dashboard";
+
+export type oldStudentProp = {
+  name: string;
+  std_Id: string;
+  stdBatch: string | null;
+};
+type NewStdFormProps = {
+  closeNewStdForm: () => void;
+  fetchStudents: (selectedBatchId: string | null) => void;
+  selectedBatchId: string | null;
+  oldStudent?: oldStudentProp | null ;
+  editedId: string | null;
+  setShowUI: React.Dispatch<React.SetStateAction<ShowUI>>;
+  showUI: ShowUI;
+};
+
+type formDataProp = {
+  stdName: string;
+  stdBatch: string | null;
+  std_id: string;
+  stdGrade?: string; // Made optional since not always used
+  stdCourse?: string; // Made optional since not always used
+  stdId?: string;
+  course?: Course;
+};
+type studentAction =
+  | { type: "stdName"; newValue: string }
+  | { type: "stdBatch"; newValue: string | null }
+  | { type: "std_id"; newValue: string }
+  | { type: "reset" };
 
 // reducer function
-const reducerFunc = (state, action) => {
+const reducerFunc = (state: formDataProp, action: studentAction) => {
   switch (action.type) {
     case "stdName": {
       return { ...state, stdName: action.newValue };
@@ -24,12 +56,19 @@ const reducerFunc = (state, action) => {
       return { ...state, std_id: action.newValue };
     }
     case "reset": {
-      return { stdName: "", std_id: "", stdGrade: "", stdCourse: "" };
+      return {
+        stdName: "",
+        std_id: "",
+        stdBatch: null,
+        stdGrade: "",
+        stdCourse: "",
+      };
     }
+    default:
+      return state;
   }
 };
 // ====== End reducer function =====
-
 export default function NewStdForm({
   closeNewStdForm,
   fetchStudents,
@@ -37,23 +76,27 @@ export default function NewStdForm({
   oldStudent,
   editedId,
   setShowUI,
-  showUI,
-}) {
-  // init student [the old student use to pre fill the form fields in Editing mode]
-  const student = oldStudent || {
+}: NewStdFormProps) {
+  const initialState: formDataProp = {
     stdName: "",
-    stdBatch: selectedBatchId || "",
+    stdBatch: selectedBatchId || null,
     std_id: "",
+    stdGrade: "",
+    stdCourse: "",
   };
+
+  const student = oldStudent
+    ? {
+        stdName: oldStudent.name,
+        stdBatch: oldStudent.stdBatch,
+        std_id: oldStudent.std_Id,
+        stdGrade: "",
+        stdCourse: "",
+      }
+    : initialState;
+
   // the form state
   const [formData, dispatch] = useReducer(reducerFunc, student);
-  //   state to validate the form & show error msg
-  const [error, setError] = useState({
-    validateName: null,
-    validateId: null,
-    validateGrade: null,
-    validateCourse: null,
-  });
   // state for toast to show that it's done succefully
   const [showToast, setShowToast] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -64,9 +107,9 @@ export default function NewStdForm({
     if (oldStudent) {
       dispatch({ type: "stdName", newValue: oldStudent.name });
       dispatch({ type: "stdBatch", newValue: selectedBatchId });
-      dispatch({ type: "std_id", newValue: oldStudent.stdId });
+      dispatch({ type: "std_id", newValue: oldStudent.std_Id });
     }
-  }, [oldStudent]);
+  }, [selectedBatchId, oldStudent]);
 
   const handelStdName = (newValue: string) => {
     dispatch({ type: "stdName", newValue: newValue });
@@ -77,9 +120,6 @@ export default function NewStdForm({
   const handelStdId = (newValue: string) => {
     dispatch({ type: "std_id", newValue: newValue });
   };
-  const handelStdGrade = (newValue: string) => {
-    dispatch({ type: "stdGrade", newValue: newValue });
-  };
   /* ======================== student course Input Function ======================= */
 
   // const handelStdCourse = (newValue) => {
@@ -88,59 +128,50 @@ export default function NewStdForm({
   /* ======================== student course Input Function ======================= */
 
   //   add new std to firesotre
-  const handelAddNewStd = async (e) => {
+  const handelAddNewStd = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
-    // validtae the form fields
-    // const isValidName = /^[\p{Arabic}\s\p{N}]+$/.test(formData.stdName);
-    const isValidId = /^\d+$/.test(formData.std_id);
-    const isValidCourse = /^[A-Za-z\s]*\d*$/.test(formData.stdCourse);
-    const isValidGrade = /^(?:\d{1,3}|[A-F][+-]?)$/.test(formData.stdGrade);
-
-    // setError({
-    //     validateName: isValidName,
-    //   validateId: isValidId,
-    //   validateCourse: isValidCourse,
-    //   validateGrade: isValidGrade,
-    // });
-    // update exist data
     if (editedId) {
       // ✅ EDIT EXISTING STUDENT
       try {
         setLoading(true);
 
-        const batchRef = doc(db, "batches", formData.stdBatch);
-        const batchSnap = await getDoc(batchRef);
+        if (formData.stdBatch !== null) {
+          const batchRef = doc(db, "batches", formData.stdBatch);
+          const batchSnap = await getDoc(batchRef);
 
-        if (!batchSnap.exists()) {
-          throw new Error("Batch does not exist");
+          if (!batchSnap.exists()) {
+            throw new Error("Batch does not exist");
+          }
+
+          const batchData = batchSnap.data();
+          const currentSem = batchData.currentSem;
+
+          // Step: Update existing student
+          const studentRef = doc(
+            db,
+            `batches/${formData.stdBatch}/students/${editedId}`
+          );
+          await setDoc(
+            studentRef,
+            {
+              name: formData.stdName,
+              stdId: formData.std_id,
+              currentSem: currentSem,
+            },
+            { merge: true }
+          ); // ✅ merge to preserve other fields
         }
-
-        const batchData = batchSnap.data();
-        const currentSem = batchData.currentSem;
-
-        // Step: Update existing student
-        const studentRef = doc(
-          db,
-          `batches/${formData.stdBatch}/students/${editedId}`
-        );
-        await setDoc(
-          studentRef,
-          {
-            name: formData.stdName,
-            stdId: formData.std_id,
-            currentSem: currentSem,
-          },
-          { merge: true }
-        ); // ✅ merge to preserve other fields
       } catch (error) {
-        console.error("❌ Error updating student:", error.message);
+        console.error("❌ Error updating student:", error);
       } finally {
         setLoading(false);
         setShowToast(true);
         setTimeout(() => {
           setShowToast(false);
-          setShowUI({ ...showUI, NewStdFrom: false });
+          setShowUI(prev => ({
+            ...prev,
+            NewStdFrom: false
+          }));
         }, 1000);
       }
     } else {
@@ -148,42 +179,47 @@ export default function NewStdForm({
       try {
         setLoading(true);
 
-        const batchRef = doc(db, "batches", formData.stdBatch);
-        const batchSnap = await getDoc(batchRef);
+        if (formData.stdBatch !== null) {
+          const batchRef = doc(db, "batches", formData.stdBatch);
+          const batchSnap = await getDoc(batchRef);
 
-        if (!batchSnap.exists()) {
-          throw new Error("Batch does not exist");
-        }
+          if (!batchSnap.exists()) {
+            throw new Error("Batch does not exist");
+          }
 
-        const batchData = batchSnap.data();
-        const currentSem = batchData.currentSem;
-        const courses = batchData.courses || [];
+          const batchData = batchSnap.data();
+          const currentSem = batchData.currentSem;
+          const courses = batchData.courses || [];
 
-        const studentRef = doc(
-          collection(db, `batches/${formData.stdBatch}/students`)
-        );
-        await setDoc(studentRef, {
-          name: formData.stdName,
-          stdId: formData.std_id,
-          currentSem: currentSem,
-          suspend: false, // ✅ default value
-        });
-
-        const semesterCoursesRef = collection(
-          db,
-          `batches/${formData.stdBatch}/students/${studentRef.id}/semesters/${currentSem}/courses`
-        );
-
-        for (const course of courses) {
-          const courseRef = doc(semesterCoursesRef, course.name.toLowerCase());
-          await setDoc(courseRef, {
-            name: course.name,
-            grade: null,
-            degree:null,
+          const studentRef = doc(
+            collection(db, `batches/${formData.stdBatch}/students`)
+          );
+          await setDoc(studentRef, {
+            name: formData.stdName,
+            stdId: formData.std_id,
+            currentSem: currentSem,
+            suspend: false, // ✅ default value
           });
+
+          const semesterCoursesRef = collection(
+            db,
+            `batches/${formData.stdBatch}/students/${studentRef.id}/semesters/${currentSem}/courses`
+          );
+
+          for (const course of courses) {
+            const courseRef = doc(
+              semesterCoursesRef,
+              course.name.toLowerCase()
+            );
+            await setDoc(courseRef, {
+              name: course.name,
+              grade: null,
+              degree: null,
+            });
+          }
         }
       } catch (error) {
-        console.error("❌ Error adding student:", error.message);
+        console.error("❌ Error adding student:", error);
       } finally {
         setLoading(false);
         setShowToast(true);
@@ -244,15 +280,6 @@ export default function NewStdForm({
         customStyle={"text-center [direction:ltr]"}
       />
       {/* End student id */}
-      {/* ======================== student course Input ======================= */}
-      {/* <Input
-        type={"text"}
-        label={"مقرر الطالب"}
-        value={formData.stdCourse}
-        onChange={handelStdCourse}
-        customStyle={"text-center"}
-      /> */}
-      {/* ========================== end student course Input ======================= */}
       {/* Add and Edit button */}
       <button
         type="submit"

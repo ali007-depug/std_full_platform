@@ -9,12 +9,12 @@ interface ProtectedRouteProps {
 
 type User = {
   uid?: string;
-  name?: string;
-  email?: string;
+  name?: string | null;
+  email?: string | null;
 }
 
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const [user, setUser] = useState<User | "">(""); 
+  const [user, setUser] = useState<User | null>(null); 
   const [checking, setChecking] = useState<boolean>(true);
   const [connectionStatus, setConnectionStatus] = useState<"online" | "offline" | "no-internet">(
     navigator.onLine ? "online" : "offline"

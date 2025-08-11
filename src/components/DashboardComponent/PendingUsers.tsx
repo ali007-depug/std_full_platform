@@ -6,9 +6,9 @@ import { CgClose } from "react-icons/cg";
 import { BiError, BiUser } from "react-icons/bi";
 
 interface PendingUsersProps {
-    allUsers: { name: string }[];
+    allUsers: { id:string,name: string }[];
     pendingUsers: { id: string; name: string }[];
-    handleApproveUser: (user: { id: string; name: string }) => void;
+    handleApproveUser: (user: { id: string; name: string,email?:string }) => void;
     handleRejectUser: (userId: string) => void;
     closePendingUsers: () => void;
 }

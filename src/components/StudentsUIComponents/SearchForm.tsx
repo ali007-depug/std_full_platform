@@ -20,7 +20,7 @@ export default function SearchForm({ onSearch }:searchFormProps) {
   };
 
   //  form submission function
-  const handelFromSubmission = (e:unknown) => {
+  const handelFromSubmission = (e:React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     // this comes from it's parent
     onSearch(stdIdVal.trim(), selectedBatch);
