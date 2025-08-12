@@ -17,7 +17,7 @@ function App() {
       {/* Routes */}
       <Suspense fallback={<Loading />}>
         <Routes>
-          <Route path="/" element={<Platform />}></Route>
+          <Route path="/" index element={<Platform />}></Route>
 
           <Route path="/std-UI" element={<StudentsUI />}></Route>
           <Route path="/signup" element={<Signup />}></Route>
