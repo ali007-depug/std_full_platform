@@ -1,13 +1,5 @@
 import { useEffect, useState,memo } from "react";
-import { db } from "../../firebase";
-import {
-  collection,
-  getDocs,
-  doc,
-  // deleteDoc,
-  updateDoc,
-  getDoc,
-} from "firebase/firestore";
+import { getDb } from "../../firebase";
 import { BiDownArrowAlt, BiEdit } from "react-icons/bi";
 import { TbTrash } from "react-icons/tb";
 import { CgBlock } from "react-icons/cg";
@@ -96,6 +88,9 @@ export default memo( function StudentInfo({
 
   // fetch student course
   const fetchStudentCourses = async (studentId: string, currentSem: string) => {
+    const {collection, getDocs} = await import("firebase/firestore")
+    const db = await getDb();
+
     try {
       setLoading(true);
       const coursesRef = collection(
@@ -125,6 +120,9 @@ export default memo( function StudentInfo({
     if (!selectedBatchId) return;
 
     setGradeUpdateLoading(true);
+    const {doc, getDoc, updateDoc} = await import("firebase/firestore");
+    const db = await getDb();
+
     try {
       const batchRef = doc(db, "batches", selectedBatchId);
       const batchSnap = await getDoc(batchRef);

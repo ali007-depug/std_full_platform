@@ -18,24 +18,15 @@ import ConfirmPopup from "../components/ConfirmPopup";
 import PendingUsers from "../components/DashboardComponent/PendingUsers";
 import Toast from "../components/Toast";
 
-// firebase
-import {
-  collection,
-  deleteDoc,
-  doc,
-  getDoc,
-  getDocs,
-  setDoc,
-} from "firebase/firestore";
-import { db } from "../firebase";
-import { getAuth } from "firebase/auth";
+import { getDb } from "../firebase";
 
 import { useCallback } from "react";
 
 // types
 import type { Student } from "../components/DashboardComponent/StudnetInfo";
 
-import * as XLSX from "xlsx";
+// import * as XLSX from "xlsx";
+// import { utils,write } from "xlsx";
 import { saveAs } from "file-saver";
 import AnimatedSpin from "../components/AnimatedSpin";
 import { useBatches } from "../Contexts/BatchContext";
@@ -141,6 +132,9 @@ export default function Dashboard() {
   // ============================= FETCH FUNCTIONS =====================================
   // function to fetch data from firebase & to update the UI
   const fetchStudents = useCallback(async (selectedBatchId: string | null) => {
+    const {collection,getDocs} = await import("firebase/firestore");
+    const db = await getDb();
+
     try {
       setStudentLoading(true);
       console.log("fetching students data...");
@@ -183,6 +177,9 @@ export default function Dashboard() {
   const fetchAllStudentsAllSemestersWithCourses = async (
     batchId: string | null
   ) => {
+    const {collection,getDocs} = await import("firebase/firestore");
+    const db = await getDb();
+
     try {
       setBatchLoadingArchive(true);
       const studentsRef = collection(db, `batches/${batchId}/students`);
@@ -239,92 +236,13 @@ export default function Dashboard() {
     }
   };
 
-  // const fetchAllStudentsWithCourses = async (batchId: string) => {
-  //   const studentsRef = collection(db, `batches/${batchId}/students`);
-  //   const studentsSnap = await getDocs(studentsRef);
-
-  //   const studentsWithCourses = await Promise.all(
-  //     studentsSnap.docs.map(async (studentDoc) => {
-  //       const student = studentDoc.data();
-  //       const studentId = studentDoc.id;
-  //       const currentSem = student.currentSem;
-
-  //       const coursesRef = collection(
-  //         db,
-  //         `batches/${batchId}/students/${studentId}/semesters/${currentSem}/courses`
-  //       );
-  //       const coursesSnap = await getDocs(coursesRef);
-
-  //       const courses = coursesSnap.docs.map((doc) => ({
-
-  //         id: doc.id,
-  //         name:doc.data().name,
-  //         degree:doc.data().degree,
-  //         grade:doc.data().grade
-  //       }));
-
-  //       return {
-  //         id: studentId,
-  //         name:student.name,
-  //         stdId: student.stdId,
-  //         currentSem: student.currentSem,
-  //         courses,
-  //       };
-  //     })
-  //   );
-
-  //   return studentsWithCourses;
-  // };
-
-  // const fetchAllStudentsAllSemestersWithCourses = async (
-  //   batchId: string
-  // ) => {
-  //   const studentsRef = collection(db, `batches/${batchId}/students`);
-  //   const studentsSnap = await getDocs(studentsRef);
-
-  //   const allData = [];
-
-  //   for (const studentDoc of studentsSnap.docs) {
-  //     const studentId = studentDoc.id;
-  //     const studentData = studentDoc.data();
-
-  //     const semestersRef = collection(
-  //       db,
-  //       `batches/${batchId}/students/${studentId}/semesters`
-  //     );
-  //     const semestersSnap = await getDocs(semestersRef);
-
-  //     for (const semesterDoc of semestersSnap.docs) {
-  //       const semesterId = semesterDoc.id;
-
-  //       const coursesRef = collection(
-  //         db,
-  //         `batches/${batchId}/students/${studentId}/semesters/${semesterId}/courses`
-  //       );
-  //       const coursesSnap = await getDocs(coursesRef);
-
-  //       for (const courseDoc of coursesSnap.docs) {
-  //         const courseData = courseDoc.data();
-
-  //         allData.push({
-  //           studentId,
-  //           studentName: studentData.name || "",
-  //           stdId: studentData.stdId || "",
-  //           semester: semesterId,
-  //           courseName: courseData.name || "",
-  //           degree: courseData.degree || "",
-  //           grade: courseData.grade || "",
-  //         });
-  //       }
-  //     }
-  //   }
-
-  //   return allData;
-  // };
-
   // function to fetch users and show it in dashboard
   const fetchUsers = useCallback(async () => {
+    const {doc,getDoc} = await import("firebase/firestore");
+    const {getAuth} = await import("firebase/auth");
     const auth = getAuth();
+    const db = await getDb();
+
     const currentUser = auth.currentUser;
     // get current user and relfect his name in UI
     if (currentUser) {
@@ -339,6 +257,9 @@ export default function Dashboard() {
     }
 
     try {
+    const {collection,getDocs} = await import("firebase/firestore");
+    const db = await getDb();
+
       // get all users and reflect them in accounts popup
       const usersCollection = collection(db, "users");
       const querySnapshot = await getDocs(usersCollection);
@@ -356,6 +277,9 @@ export default function Dashboard() {
   // get pending users
   const getPendingUsers = useCallback(async () => {
     try {
+    const {collection,getDocs} = await import("firebase/firestore");
+    const db = await getDb();
+
       const snapshot = await getDocs(collection(db, "pending-users"));
       const pUsers = snapshot.docs.map((doc) => ({
         id: doc.id,
@@ -387,6 +311,9 @@ export default function Dashboard() {
   const handleApproveUser = useCallback(
     async (user: { id: string; name: string; email?: string }) => {
       try {
+    const {setDoc,doc,deleteDoc} = await import("firebase/firestore");
+    const db = await getDb();
+
         await setDoc(doc(db, "users", user.id), {
           name: user.name,
           email: user.email,
@@ -413,8 +340,10 @@ export default function Dashboard() {
   // when user click on ✖️
   const handleRejectUser = useCallback(async (id: string) => {
     try {
-      await deleteDoc(doc(db, "pending-users", id));
+    const {doc,deleteDoc} = await import("firebase/firestore");
+    const db = await getDb();
 
+      await deleteDoc(doc(db, "pending-users", id));
       setShowUI((prev) => ({ ...prev, toast: true }));
       setToastMsg("تم الرفض بنجاح");
       setTimeout(() => {
@@ -465,6 +394,9 @@ export default function Dashboard() {
   async function removeBatchFromFireStore(batchId: string | null) {
     setIsDeletingBatch(true);
     try {
+    const {collection,doc,deleteDoc,getDocs} = await import("firebase/firestore");
+    const db = await getDb();
+
       if (batchId !== null) {
         const batchRef = doc(db, "batches", batchId);
         const studentsRef = collection(db, `batches/${batchId}/students`);
@@ -549,6 +481,9 @@ export default function Dashboard() {
     await fetchAllStudentsAllSemestersWithCourses(selectedBatchId);
     // update batch data - archived : true
     if (selectedBatchId !== null) {
+    const {setDoc,doc} = await import("firebase/firestore");
+    const db = await getDb();
+
       const batchRef = doc(db, "batches", selectedBatchId);
       await setDoc(batchRef, { archived: true }, { merge: true });
       setBatches((prevBatches) =>
@@ -562,15 +497,17 @@ export default function Dashboard() {
     }
   };
 
-  const exportBatchToExcel = (
+  const exportBatchToExcel = async(
     data: allStdInfo[],
     fileName = "students.xlsx"
   ) => {
-    const worksheet = XLSX.utils.json_to_sheet(data);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Students");
+    const {utils,write} = await import("xlsx");
 
-    const excelBuffer = XLSX.write(workbook, {
+    const worksheet = utils.json_to_sheet(data);
+    const workbook = utils.book_new();
+    utils.book_append_sheet(workbook, worksheet, "Students");
+
+    const excelBuffer = write(workbook, {
       bookType: "xlsx",
       type: "array",
     });
@@ -601,6 +538,9 @@ export default function Dashboard() {
   const handleRemoveStd = useCallback(
     async (studentId: string | null) => {
       try {
+    const {collection,getDocs,doc,deleteDoc} = await import("firebase/firestore");
+    const db = await getDb();
+
         // 1. Reference to semesters collection
         const semestersRef = collection(
           db,
@@ -672,6 +612,10 @@ export default function Dashboard() {
   const handleSuspend = useCallback(
     async (id: string) => {
       try {
+    const {setDoc,doc,getDoc} = await import("firebase/firestore");
+    const db = await getDb();
+
+
         const studentRef = doc(db, `batches/${selectedBatchId}/students`, id);
         const studentSnap = await getDoc(studentRef);
         if (studentSnap.exists()) {

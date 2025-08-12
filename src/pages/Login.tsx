@@ -7,9 +7,9 @@ import Input from "../components/Input";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 // fire base
-import { getAuth, signInWithEmailAndPassword, signOut } from "firebase/auth";
+// import { getAuth, signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { doc, getDoc } from "@firebase/firestore";
-import { app, db } from "../firebase";
+import { app, getDb } from "../firebase";
 
 interface userData {
   userEmail: string;
@@ -28,7 +28,6 @@ export default function Login() {
   const [showPopup, setShowPopup] = useState<boolean>(false); // the popup
 
   const navigate = useNavigate();
-  const auth = getAuth(app);
 
   const closePopupError = () => {
     setShowPopup(false);
@@ -48,7 +47,7 @@ export default function Login() {
   };
 
   // func to handle the login
-  const handelLogin = async (e:React.FormEvent<HTMLFormElement>) => {
+  const handelLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault(); // prevent the default action
     // check if the email is valid
     const isEmailVailditon = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
@@ -66,6 +65,12 @@ export default function Login() {
         // try catch block
         setIsLoading(true);
         try {
+          const {getAuth} = await import("firebase/auth");
+          const { signInWithEmailAndPassword, signOut } = await import(
+            "firebase/auth"
+          );
+                    const db = await getDb();
+          const auth = getAuth(app);
           // attempt login
           const userCredential = await signInWithEmailAndPassword(
             auth,
@@ -91,13 +96,19 @@ export default function Login() {
           if ((error as { code: string }).code === "auth/user-not-found") {
             setShowPopup(true);
             setErrorMsg("عذراً هذا المتسخدم غير موجود");
-          } else if ((error as {code:string}).code === "auth/wrong-password") {
+          } else if (
+            (error as { code: string }).code === "auth/wrong-password"
+          ) {
             setShowPopup(true);
             setErrorMsg("كلمة  السر التي أدخلتها غير صحيحة");
-          } else if ((error as {code:string}).code === "auth/invalid-credential") {
+          } else if (
+            (error as { code: string }).code === "auth/invalid-credential"
+          ) {
             setShowPopup(true);
             setErrorMsg("البريد الإلكتروني غير صحيح أو كلمة المرور غير صحيحة");
-          } else if ((error as {code:string}).code === "auth/network-request-failed") {
+          } else if (
+            (error as { code: string }).code === "auth/network-request-failed"
+          ) {
             setShowPopup(true);
             setErrorMsg("فشل الإتصال بالشبكة، حاول مجدداً");
           }

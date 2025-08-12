@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 // firebase
 // import { getDocs,collection } from "firebase/firestore";
 // import { db } from "../../firebase";
-import { getAuth, signOut } from "firebase/auth";
+// import { getAuth, signOut } from "firebase/auth";
 
 import Button from "./Button";
 import { BsPlus } from "react-icons/bs";
@@ -34,6 +34,7 @@ export default function SidePanel({
   };
 
   const handleLogout = async () => {
+    const {getAuth, signOut} = await import("firebase/auth");
     const auth = getAuth();
     try {
       await signOut(auth);

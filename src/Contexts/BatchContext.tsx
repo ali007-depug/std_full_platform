@@ -1,5 +1,5 @@
 import React, { createContext,useState,useCallback, useEffect, useContext, useMemo } from "react";
-import { db } from "../firebase";
+import { getDb } from "../firebase";
 import { getDocs,collection } from "firebase/firestore";
 
 export type batchProp = {
@@ -39,6 +39,8 @@ export function BatchesProvider ({children}: {children:React.ReactNode}){
         // to fetch all batches from firesote
         const fetchBatches = useCallback(async () => {
           // ToDO : IF NO BATCHES THEN SHOW A MESSAGE
+          const db = await getDb();
+
           try {
             setBatchLoading(true);
             const snapshot = await getDocs(collection(db, "batches"));

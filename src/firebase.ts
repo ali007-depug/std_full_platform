@@ -1,12 +1,7 @@
-// Import the functions you need from the SDKs you need
+// firebase.ts
 import { initializeApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
-import { getAuth } from "firebase/auth";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+// Only initialization is done here (tiny size)
 const firebaseConfig = {
   apiKey: "AIzaSyAwKNEvi5YJVPzE2NmeWUMUWjWNsWUkQao",
   authDomain: "std-full-v.firebaseapp.com",
@@ -17,10 +12,15 @@ const firebaseConfig = {
   measurementId: "G-8RCH6751FY"
 };
 
-  // Initialize Firebase
+export const app = initializeApp(firebaseConfig);
 
-  export const app = initializeApp(firebaseConfig);
+// Functions to import heavy modules only when needed
+export async function getDb() {
+  const { getFirestore } = await import("firebase/firestore");
+  return getFirestore(app);
+}
 
-  // Export Firebase services
-  export const db = getFirestore(app);
-  export const auth = getAuth(app)
+export async function getAuthInstance() {
+  const { getAuth } = await import("firebase/auth");
+  return getAuth(app);
+}

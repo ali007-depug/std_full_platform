@@ -8,8 +8,8 @@ import { FiCopy } from 'react-icons/fi';
 
 
 // firebase
-import { collection, query, where, getDocs } from "firebase/firestore";
-import { db } from "../firebase";
+// import { collection, query, where, getDocs } from "firebase/firestore";
+import { getDb } from "../firebase";
 
 type course = {
 id:string;
@@ -41,6 +41,9 @@ export default function StudentsUI() {
 
       // try catch block
       try {
+        const {collection, query, where, getDocs} = await import("firebase/firestore");
+        const db = await getDb();
+
        // Step 1: Query student with field id == studentId
     const studentsRef = collection(db, `batches/${stdBatch}/students`);
     const studentQuery = query(studentsRef, where("stdId", "==", stdId));

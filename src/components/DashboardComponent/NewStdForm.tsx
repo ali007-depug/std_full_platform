@@ -8,8 +8,8 @@ import { IoCloseCircleSharp } from "react-icons/io5";
 import { BiEdit } from "react-icons/bi";
 import { BiPlus } from "react-icons/bi";
 // firebase
-import { setDoc, getDoc, doc, collection } from "firebase/firestore";
-import { db } from "../../firebase";
+// import { setDoc, getDoc, doc, collection } from "firebase/firestore";
+import { getDb } from "../../firebase";
 import type { Course } from "./StudnetInfo";
 import type { ShowUI } from "../../pages/Dashboard";
 
@@ -136,6 +136,8 @@ export default function NewStdForm({
         setLoading(true);
 
         if (formData.stdBatch !== null) {
+          const db = await getDb();
+          const {doc, setDoc, getDoc} = await import("firebase/firestore");
           const batchRef = doc(db, "batches", formData.stdBatch);
           const batchSnap = await getDoc(batchRef);
 
@@ -180,6 +182,9 @@ export default function NewStdForm({
         setLoading(true);
 
         if (formData.stdBatch !== null) {
+          const db = await getDb();
+
+          const {doc, setDoc, getDoc, collection} = await import("firebase/firestore");
           const batchRef = doc(db, "batches", formData.stdBatch);
           const batchSnap = await getDoc(batchRef);
 

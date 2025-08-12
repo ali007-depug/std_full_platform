@@ -10,10 +10,9 @@ import { useNavigate } from "react-router-dom";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 // firebase
-import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
-import { getFirestore, doc, setDoc } from "firebase/firestore";
-import { app } from "../firebase";
-
+// import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
+// import { getFirestore, doc, setDoc } from "firebase/firestore";
+import { app,getDb } from "../firebase";
 type validateForm = {
   emailValid: boolean ;
   passwordValid: boolean;
@@ -48,8 +47,6 @@ export default function Signup() {
   const fullName = adminInfo.fName + " " + adminInfo.lName;
 
   const navigate = useNavigate();
-  const auth = getAuth(app);
-  const db = getFirestore(app);
 
   //   func to toggel showing password
   const toggleShowPassword = () => {
@@ -93,6 +90,11 @@ export default function Signup() {
       if (isEmailVailditon && hasSpecialChar) {
         setLoading(true);
         try {
+          const {createUserWithEmailAndPassword} = await import("firebase/auth");
+          const {doc, setDoc} = await import("firebase/firestore");
+          const {getAuth} = await import("firebase/auth");
+          const auth = getAuth(app);
+          const db = await getDb();
           // 1 Create user in Firebase Auth
           const userCredential = await createUserWithEmailAndPassword(
             auth,

@@ -6,8 +6,8 @@ import AnimatedSpin from "../AnimatedSpin";
 import ListBox2 from "../ListBox2";
 import PupopError from "../PopupError";
 // firesotre
-import { db } from "../../firebase";
-import { setDoc, doc, getDoc } from "firebase/firestore";
+import { getDb } from "../../firebase";
+// import { setDoc, doc, getDoc } from "firebase/firestore";
 
 import type { ShowUI } from "../../pages/Dashboard";
 
@@ -101,6 +101,8 @@ export default memo( function NewBatchInput({
   
   setLoading(true);
   try{
+    const {doc, setDoc, getDoc} = await import("firebase/firestore");
+              const db = await getDb();
       const batchDoc = doc(db, "batches", newBatchName);
       const batchSnap = await getDoc(batchDoc);
     if (batchSnap.exists()) {

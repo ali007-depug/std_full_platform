@@ -1,12 +1,12 @@
 import { useState,memo } from "react";
-import {
-  collection,
-  setDoc,
-  getDocs,
-  doc,
-  updateDoc,
-} from "firebase/firestore";
-import { db } from "../../firebase";
+// import {
+//   collection,
+//   setDoc,
+//   getDocs,
+//   doc,
+//   updateDoc,
+// } from "firebase/firestore";
+import { getDb } from "../../firebase";
 import CloseIcon from "../CloseIcon";
 import { BiError } from "react-icons/bi";
 import AnimatedSpin from "../AnimatedSpin";
@@ -42,6 +42,9 @@ export default memo( function BatchInfo({
   // handle batches update from firesotre
   async function handleUpdate(batchName: string) {
     try {
+      const {doc, collection, updateDoc, setDoc, getDocs} = await import("firebase/firestore");
+      const db = await getDb();
+
       const batchRef = doc(db, "batches", batchName);
 
       // 1. Prepare new courses
