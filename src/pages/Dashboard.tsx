@@ -1,15 +1,22 @@
 // hooks
-import { useEffect, useState } from "react";
+import { useEffect, useState,lazy, Suspense } from "react";
 // components
-import SidePanel from "../components/DashboardComponent/SidePanel";
+// import SidePanel from "../components/DashboardComponent/SidePanel";
+const SidePanel = lazy(() =>
+  import("../components/DashboardComponent/SidePanel")
+);  
 import BatchInfo from "../components/DashboardComponent/BatchInfo";
 import NewBatchInput from "../components/DashboardComponent/NewBatchInput";
-import StudentInfo from "../components/DashboardComponent/StudnetInfo";
-import NewStdFrom, { type oldStudentProp } from "../components/DashboardComponent/NewStdForm";
+// import StudentInfo from "../components/DashboardComponent/StudnetInfo";
+const StudentInfo = lazy(() =>
+  import("../components/DashboardComponent/StudnetInfo")
+);
+import NewStdFrom, {
+  type oldStudentProp,
+} from "../components/DashboardComponent/NewStdForm";
 import ConfirmPopup from "../components/ConfirmPopup";
 import PendingUsers from "../components/DashboardComponent/PendingUsers";
 import Toast from "../components/Toast";
-// react icons
 
 // firebase
 import {
@@ -23,18 +30,17 @@ import {
 import { db } from "../firebase";
 import { getAuth } from "firebase/auth";
 
-// react router
-// import { useNavigate } from "react-router-dom";
 import { useCallback } from "react";
 
 // types
-// import batchesProp  from "../components/DashboardComponent/BatchInfo";
 import type { Student } from "../components/DashboardComponent/StudnetInfo";
 
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import AnimatedSpin from "../components/AnimatedSpin";
 import { useBatches } from "../Contexts/BatchContext";
+
+
 // UI Interface
 export interface ShowUI {
   default: boolean;
@@ -48,6 +54,7 @@ export interface ShowUI {
   showBatchInfo: boolean;
   showStudnetInfo: boolean;
 }
+
 interface allStdInfo {
   id: string;
   name: string;
@@ -56,6 +63,7 @@ interface allStdInfo {
   courses?: Course[];
   currentSem: string;
 }
+
 interface Course {
   id: string;
   name: string;
@@ -71,7 +79,6 @@ type FlattenedCourse = {
   courseName: string;
   degree: string | number;
   grade: string;
-
 };
 
 export default function Dashboard() {
@@ -98,7 +105,8 @@ export default function Dashboard() {
   const [archiveBatch, setArchiveBatch] = useState<FlattenedCourse[]>([]);
   const [batchLoadingArchive, setBatchLoadingArchive] = useState(false);
   const [selectedStddId, setSelectedStddId] = useState<string | null>(null); // STORE: the selected id when user want remove any studtent
-  const [editStudentInfo, setEditStudentInfo] = useState<oldStudentProp|null>(); // STORE : student info to show it in the form when user try to edit it
+  const [editStudentInfo, setEditStudentInfo] =
+    useState<oldStudentProp | null>(); // STORE : student info to show it in the form when user try to edit it
   const [editedSelectedId, setEditedSelectedId] = useState<null | string>(null); // STORE the selected id when user want to edit any studtent
   const [studentLoading, setStudentLoading] = useState(false); // Fetching student Status
   // ============== End Students states ==============
@@ -110,8 +118,10 @@ export default function Dashboard() {
   // ================ End Batche states ====================
 
   // ================= Users States =======================
-  const [pendingUsers, setPendingUsers] = useState<{id:string,name:string}[]>([]); // STORE : peding users
-  const [allUsers, setAllUsers] = useState<{id:string,name:string}[]>([]); // STORE : all users
+  const [pendingUsers, setPendingUsers] = useState<
+    { id: string; name: string }[]
+  >([]); // STORE : peding users
+  const [allUsers, setAllUsers] = useState<{ id: string; name: string }[]>([]); // STORE : all users
   const [currentUser, setCurrentUser] = useState<string>(""); // SOTRE : current admin
 
   const { batches, batchLoading, fetchBatches, setBatches } = useBatches();
@@ -178,12 +188,11 @@ export default function Dashboard() {
       const studentsRef = collection(db, `batches/${batchId}/students`);
       const studentsSnap = await getDocs(studentsRef);
 
-
       const allData = await Promise.all(
         studentsSnap.docs.map(async (studentDoc) => {
           const studentId = studentDoc.id;
           const studentData = studentDoc.data();
-          const studentsInfo:FlattenedCourse[] = [];
+          const studentsInfo: FlattenedCourse[] = [];
 
           // Check semesters 1 through 12 dynamically
           for (let semesterNum = 1; semesterNum <= 12; semesterNum++) {
@@ -199,7 +208,7 @@ export default function Dashboard() {
               coursesSnap.docs.forEach((courseDoc) => {
                 const courseData = courseDoc.data();
                 studentsInfo.push({
-                  id:studentId,
+                  id: studentId,
                   name: studentData.name || "",
                   stdId: studentData.stdId || "",
                   currentSem: semesterId,
@@ -376,7 +385,7 @@ export default function Dashboard() {
 
   // when user click on ✅
   const handleApproveUser = useCallback(
-    async (user: { id: string; name: string,email?:string }) => {
+    async (user: { id: string; name: string; email?: string }) => {
       try {
         await setDoc(doc(db, "users", user.id), {
           name: user.name,
@@ -456,48 +465,48 @@ export default function Dashboard() {
   async function removeBatchFromFireStore(batchId: string | null) {
     setIsDeletingBatch(true);
     try {
-      if(batchId !== null){
-      const batchRef = doc(db, "batches", batchId);
-      const studentsRef = collection(db, `batches/${batchId}/students`);
-      const studentsSnap = await getDocs(studentsRef);
+      if (batchId !== null) {
+        const batchRef = doc(db, "batches", batchId);
+        const studentsRef = collection(db, `batches/${batchId}/students`);
+        const studentsSnap = await getDocs(studentsRef);
 
-      // Loop over students
-      for (const studentDoc of studentsSnap.docs) {
-        const studentId = studentDoc.id;
-        const semestersRef = collection(
-          db,
-          `batches/${batchId}/students/${studentId}/semesters`
-        );
-        const semestersSnap = await getDocs(semestersRef);
-
-        // Loop over semesters
-        for (const semDoc of semestersSnap.docs) {
-          const semId = semDoc.id;
-          const coursesRef = collection(
+        // Loop over students
+        for (const studentDoc of studentsSnap.docs) {
+          const studentId = studentDoc.id;
+          const semestersRef = collection(
             db,
-            `batches/${batchId}/students/${studentId}/semesters/${semId}/courses`
+            `batches/${batchId}/students/${studentId}/semesters`
           );
-          const coursesSnap = await getDocs(coursesRef);
+          const semestersSnap = await getDocs(semestersRef);
 
-          // Delete each course
-          await Promise.all(
-            coursesSnap.docs.map((courseDoc) => deleteDoc(courseDoc.ref))
-          );
+          // Loop over semesters
+          for (const semDoc of semestersSnap.docs) {
+            const semId = semDoc.id;
+            const coursesRef = collection(
+              db,
+              `batches/${batchId}/students/${studentId}/semesters/${semId}/courses`
+            );
+            const coursesSnap = await getDocs(coursesRef);
 
-          // Delete semester document
-          await deleteDoc(semDoc.ref);
+            // Delete each course
+            await Promise.all(
+              coursesSnap.docs.map((courseDoc) => deleteDoc(courseDoc.ref))
+            );
+
+            // Delete semester document
+            await deleteDoc(semDoc.ref);
+          }
+
+          // Delete student document
+          await deleteDoc(studentDoc.ref);
         }
 
-        // Delete student document
-        await deleteDoc(studentDoc.ref);
+        // Finally, delete the batch itself
+        await deleteDoc(batchRef);
+
+        console.log(`✅ Batch ${batchId} and all its data deleted`);
       }
-
-      // Finally, delete the batch itself
-      await deleteDoc(batchRef);
-
-      console.log(`✅ Batch ${batchId} and all its data deleted`);
-    } 
-  }catch (error) {
+    } catch (error) {
       console.error("❌ Error deleting batch:", error);
     } finally {
       setIsDeletingBatch(false);
@@ -508,7 +517,6 @@ export default function Dashboard() {
       }, 1500);
       // update The courses Array
       setBatches((prev) => prev?.filter((batch) => batch.id !== batchId));
-
     }
   }
 
@@ -540,18 +548,19 @@ export default function Dashboard() {
   const archivingBatch = async () => {
     await fetchAllStudentsAllSemestersWithCourses(selectedBatchId);
     // update batch data - archived : true
-    if(selectedBatchId !== null){
-    const batchRef = doc(db, "batches", selectedBatchId);
-    await setDoc(batchRef, { archived: true }, { merge: true });
-    setBatches((prevBatches) =>
-      prevBatches.map((batch) =>
-        batch.id === selectedBatchId ? { ...batch, archived: true } : batch
-      )
-    );
-    exportBatchToExcel(archiveBatch, `${selectedBatchId}_students.xlsx`);
-    // fetchBatches();
-    setShowUI({ ...showUI, confirmPopup: false });
-  }};
+    if (selectedBatchId !== null) {
+      const batchRef = doc(db, "batches", selectedBatchId);
+      await setDoc(batchRef, { archived: true }, { merge: true });
+      setBatches((prevBatches) =>
+        prevBatches.map((batch) =>
+          batch.id === selectedBatchId ? { ...batch, archived: true } : batch
+        )
+      );
+      exportBatchToExcel(archiveBatch, `${selectedBatchId}_students.xlsx`);
+      // fetchBatches();
+      setShowUI({ ...showUI, confirmPopup: false });
+    }
+  };
 
   const exportBatchToExcel = (
     data: allStdInfo[],
@@ -581,7 +590,7 @@ export default function Dashboard() {
 
   // when user click on trash icon ==> show confirm popup and store the id of selected one
   const handleDeleteStd = useCallback(
-    (id:string) => {
+    (id: string) => {
       setConfirmMsg("حذف هذا الطالب");
       setShowUI({ ...showUI, confirmPopup: true });
       setSelectedStddId(id);
@@ -590,7 +599,7 @@ export default function Dashboard() {
   );
   // remove student from firestore & UI
   const handleRemoveStd = useCallback(
-    async (studentId: string|null) => {
+    async (studentId: string | null) => {
       try {
         // 1. Reference to semesters collection
         const semestersRef = collection(
@@ -739,6 +748,7 @@ export default function Dashboard() {
           )}
           {/* show student Info */}
           {showUI.showStudnetInfo && (
+            <Suspense fallback={<div>Loading...</div>}>
             <StudentInfo
               students={students}
               setStudents={setStudents}
@@ -750,6 +760,7 @@ export default function Dashboard() {
               handleEditStd={handleEditStd}
               handleSuspend={handleSuspend}
             />
+            </Suspense>
           )}
           {/* Form to add or edit student */}
           {showUI.NewStdFrom && (
@@ -828,6 +839,7 @@ export default function Dashboard() {
         {/* End Dashboard data */}
 
         {/* ========== side panel component ======== */}
+        <Suspense fallback={<div>Loading...</div>}>
         <SidePanel
           showBatchesInfo={showBatchesInfo}
           showNewBatchUI={showNewBatchUI}
@@ -835,6 +847,7 @@ export default function Dashboard() {
           currentUser={currentUser}
           // showBatchInfo={showBatchInfo}
         />
+        </Suspense>
         {/* ========= side panel component  ============ */}
       </main>
       {/* ============== End content  =============== */}
