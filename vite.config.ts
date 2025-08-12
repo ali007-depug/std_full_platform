@@ -6,13 +6,14 @@ import { visualizer } from 'rollup-plugin-visualizer';
 
 // https://vite.dev/config/
 export default defineConfig({
+  base:"/std_full_platform/",
   plugins: [react(), tailwindcss(),
-    visualizer({
-      open: true, // Automatically opens the report in browser
-      gzipSize: true, // Shows gzip-size
-      brotliSize: true, // Shows brotli-size
-      filename: 'bundle-analysis.html' // Output filename
-    })
+    // visualizer({
+    //   open: true, // Automatically opens the report in browser
+    //   gzipSize: true, // Shows gzip-size
+    //   brotliSize: true, // Shows brotli-size
+    //   filename: 'bundle-analysis.html' // Output filename
+    // })
   ],
   build: {
     rollupOptions: {
